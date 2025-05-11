@@ -1,40 +1,3 @@
-provider "aws" {
-  region = "us-east-2"
-}
-
-# Create an S3 Bucket
-resource "aws_s3_bucket" "my_bucket" {
-  bucket = "my-tf-test-bucket025" # Ensure this bucket name is unique
-
-  tags = {
-    Name        = "My bucket25"
-    Environment = "Dev"
-  }
-}
-
-# Enable Static Website Hosting
-resource "aws_s3_bucket_website_configuration" "website" {
-  bucket = aws_s3_bucket.my_bucket.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "error.html"
-  }
-}
-
-# Block all Public Access to the S3 Bucket
-resource "aws_s3_bucket_public_access_block" "public_access_block" {
-  bucket = aws_s3_bucket.my_bucket.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
 # Create a CloudFront Origin Access Identity (OAI) to Restrict Access to S3
 resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
   comment = "OAI for accessing ${aws_s3_bucket.my_bucket.bucket}"
@@ -47,13 +10,13 @@ resource "aws_s3_bucket_policy" "cloudfront_access" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowCloudFrontAccess"
-        Effect    = "Allow"
+        Sid    = "AllowCloudFrontAccess"
+        Effect = "Allow"
         Principal = {
           AWS = aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn
         }
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.my_bucket.arn}/*"
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.my_bucket.arn}/*"
       }
     ]
   })
@@ -87,10 +50,9 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     cloudfront_default_certificate = true
   }
 
-  # ✅ Fix: Add the required restrictions block
   restrictions {
     geo_restriction {
-      restriction_type = "none" # Change to "whitelist" or "blacklist" if restricting certain regions
+      restriction_type = "none"
     }
   }
 }
@@ -120,41 +82,9 @@ resource "aws_cloudfront_cache_policy" "default" {
   }
 }
 
-# Create index.html file with "Hello, World!"
-resource "local_file" "index_html" {
-  filename = "${path.module}/index.html"
-  content  = <<EOF
-  <!DOCTYPE html>
-  <html>
-  <head>
-      <title>My S3 Website</title>
-  </head>
-  <body>
-      <h1>Hello, World!</h1>
-      <p>Welcome to my static website hosted on S3 and served via CloudFront!</p>
-  </body>
-  </html>
-  EOF
-}
-
-# Upload index.html to S3
-resource "aws_s3_object" "index" {
-  bucket       = aws_s3_bucket.my_bucket.id
-  key          = "index.html"
-  source       = local_file.index_html.filename
-  content_type = "text/html"
-}
-
-# Upload error.html to S3
-resource "aws_s3_object" "error" {
-  bucket       = aws_s3_bucket.my_bucket.id
-  key          = "error.html"
-  source       = local_file.index_html.filename
-  content_type = "text/html"
-}
-
 # Output the CloudFront URL
 output "cloudfront_url" {
   value       = "https://${aws_cloudfront_distribution.s3_distribution.domain_name}"
   description = "Access your website through CloudFront"
 }
+
