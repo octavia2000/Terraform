@@ -26,6 +26,9 @@ terraform init
 terraform apply
 ```
 
+![Screenshot_11-5-2025_164052_legendary-funicular-4rj759rp6qvf7wxr github dev](https://github.com/user-attachments/assets/a29f734d-b392-49b8-a288-b0347ffe139b)
+
+
 4. Access your website using the CloudFront URL displayed in the outputs
 
 ## Features
@@ -52,6 +55,8 @@ To customize the website:
 ## Outputs
 
 - **CloudFront URL**: The URL to access your website
+
+  ![Screenshot 2025-05-11 164019](https://github.com/user-attachments/assets/e0896abd-9d2b-4c15-8f64-3ee95549a2e7)
 
 ## Clean Up
 
